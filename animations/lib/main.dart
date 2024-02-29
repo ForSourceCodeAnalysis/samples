@@ -12,6 +12,9 @@ import 'package:window_size/window_size.dart';
 import 'src/basics/basics.dart';
 import 'src/misc/misc.dart';
 
+/**
+ * 展示了 flutter 动画能力
+ */
 void main() {
   setupWindow();
   runApp(const AnimationSamples());
@@ -20,6 +23,7 @@ void main() {
 const double windowWidth = 480;
 const double windowHeight = 854;
 
+//窗口设置
 void setupWindow() {
   if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
     WidgetsFlutterBinding.ensureInitialized();
@@ -154,10 +158,11 @@ final miscDemos = [
   ),
 ];
 
+//设置路由
 final router = GoRouter(
   routes: [
     GoRoute(
-      path: '/',
+      path: '/', //必须要有一个根路由
       builder: (context, state) => const HomePage(),
       routes: [
         for (final demo in basicDemos)
@@ -180,13 +185,16 @@ class AnimationSamples extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    //使用了具名构造函数
     return MaterialApp.router(
       title: 'Animation Samples',
       theme: ThemeData(
+        //主题颜色，相对于上一个例子，这里提供了一种新的设置方式，这种根据基色生成式的
+        //方式更完善
         colorSchemeSeed: Colors.deepPurple,
         useMaterial3: true,
       ),
-      routerConfig: router,
+      routerConfig: router, //这里没用home，用的是router
     );
   }
 }
@@ -196,15 +204,15 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final headerStyle = Theme.of(context).textTheme.titleLarge;
+    final headerStyle = Theme.of(context).textTheme.titleLarge; //根据上下文设置主题
     return Scaffold(
       appBar: AppBar(
         title: const Text('Animation Samples'),
       ),
       body: ListView(
         children: [
-          ListTile(title: Text('Basics', style: headerStyle)),
-          ...basicDemos.map((d) => DemoTile(demo: d)),
+          ListTile(title: Text('Basics', style: headerStyle)), //列表标题
+          ...basicDemos.map((d) => DemoTile(demo: d)), //展开项
           ListTile(title: Text('Misc', style: headerStyle)),
           ...miscDemos.map((d) => DemoTile(demo: d)),
         ],

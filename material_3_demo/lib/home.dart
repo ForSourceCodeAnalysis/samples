@@ -69,6 +69,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     super.dispose();
   }
 
+//这是一个框架自带的方法，会在多种情况下自动调用
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -107,10 +108,11 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     });
   }
 
+//创建主页面
   Widget createScreenFor(
       ScreenSelected screenSelected, bool showNavBarExample) {
     switch (screenSelected) {
-      case ScreenSelected.component:
+      case ScreenSelected.component: //组件页面
         return Expanded(
           child: OneTwoTransition(
             animation: railAnimation,
@@ -124,10 +126,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           ),
         );
       case ScreenSelected.color:
-        return const ColorPalettesScreen();
+        return const ColorPalettesScreen(); //颜色页面
       case ScreenSelected.typography:
-        return const TypographyScreen();
-      case ScreenSelected.elevation:
+        return const TypographyScreen(); //排版页面
+      case ScreenSelected.elevation: //立体阴影示例页面
         return const ElevationScreen();
     }
   }
@@ -201,9 +203,11 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           scaffoldKey: scaffoldKey,
           animationController: controller,
           railAnimation: railAnimation,
-          appBar: createAppBar(),
+          appBar: createAppBar(), //定义头部
+          //定义页面
           body: createScreenFor(
               ScreenSelected.values[screenIndex], controller.value == 1),
+          //定义侧边栏
           navigationRail: NavigationRail(
             extended: showLargeSizeLayout,
             destinations: navRailDestinations,
@@ -214,6 +218,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 handleScreenChanged(screenIndex);
               });
             },
+            //定义侧边栏尾部，这个和侧边栏菜单有区别，不会响应 selectedIndex ，需要
+            //自定义按钮事件
             trailing: Expanded(
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 20),
@@ -643,11 +649,12 @@ class _NavigationTransitionState extends State<NavigationTransition> {
           RailTransition(
             animation: railAnimation,
             backgroundColor: colorScheme.surface,
-            child: widget.navigationRail,
+            child: widget.navigationRail, //侧边栏
           ),
-          widget.body,
+          widget.body, //主体
         ],
       ),
+      //底部导航栏
       bottomNavigationBar: BarTransition(
         animation: barAnimation,
         backgroundColor: colorScheme.surface,

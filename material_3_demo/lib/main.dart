@@ -32,6 +32,7 @@ void main() async {
   );
 }
 
+//整体是一个 StatefulWidget
 class App extends StatefulWidget {
   const App({super.key});
 
@@ -41,15 +42,17 @@ class App extends StatefulWidget {
 
 class _AppState extends State<App> {
   bool useMaterial3 = true;
-  ThemeMode themeMode = ThemeMode.system;
-  ColorSeed colorSelected = ColorSeed.baseColor;
-  ColorImageProvider imageSelected = ColorImageProvider.leaves;
-  ColorScheme? imageColorScheme = const ColorScheme.light();
-  ColorSelectionMethod colorSelectionMethod = ColorSelectionMethod.colorSeed;
+  ThemeMode themeMode = ThemeMode.system; //默认跟随系统主题
+  ColorSeed colorSelected = ColorSeed.baseColor; //主题色
+  ColorImageProvider imageSelected = ColorImageProvider.leaves; //主图图片
+  ColorScheme? imageColorScheme = const ColorScheme.light(); //主图图片色调
+  ColorSelectionMethod colorSelectionMethod =
+      ColorSelectionMethod.colorSeed; //主图模式：颜色，图片
 
+//是否使用了明亮主题
   bool get useLightMode {
     switch (themeMode) {
-      case ThemeMode.system:
+      case ThemeMode.system: //当主题模式选择跟随系统时，判断系统是否使用了明亮主题
         return View.of(context).platformDispatcher.platformBrightness ==
             Brightness.light;
       case ThemeMode.light:

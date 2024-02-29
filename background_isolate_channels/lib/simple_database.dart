@@ -11,6 +11,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 ///////////////////////////////////////////////////////////////////////////////
+// 代码分两部分，一部分是 SimpleDatabase 客户端，一部分是 SimpleDatabase 服务端
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
 // **WARNING:** This is not production code and is only intended to be used for
 // demonstration purposes.
 //
@@ -21,6 +25,15 @@ import 'package:flutter/services.dart';
 // isolate and the [_SimpleDatabaseServer] operates on a background isolate.
 //
 // Here is an example of the protocol they use to communicate:
+// 这里介绍了 client 和 server 的通信流程。
+// 1. 客户端是运行在主线程的，会创建一个 Isolate 启动后台 server 服务，并将自己的
+//    receivePort.sendPort 传递过去，然后创建一个 Completer ，并等待其完成
+// 2. server 端启动时会发一个 init 命令给 client ，并将自己的 receivePort.sendPort
+//    传递给 client ，这样双方就可以通过对方的 receivePort.sendPort 进行通信
+// 3. client 收到 server 的 init 命令，会回复一个 RootIsolateToken 过去
+// 4. server 收到 RootIsolateToken ，会回复 ack
+// 5. client 收到 ack， 会将之前创建的 Completer 标记为完成，结束等待，然后将 client
+//    实例返回到主线程，以便主线程进行后续的操作
 //
 //  _________________                         ________________________
 //  [:SimpleDatabase]                         [:_SimpleDatabaseServer]
@@ -73,7 +86,7 @@ class SimpleDatabase {
 
   final Isolate _isolate;
   final String _path;
-  late final SendPort _sendPort;
+  late final SendPort _sendPort; //用来和 Isolate 交互
   // Completers are stored in a queue so multiple commands can be queued up and
   // handled serially.
   final Queue<Completer<void>> _completers = Queue<Completer<void>>();
@@ -84,15 +97,28 @@ class SimpleDatabase {
 
   /// Open the database at [path] and launch the server on a background isolate..
   static Future<SimpleDatabase> open(String path) async {
+    // 创建 reveivePort 用来接收响应
     final ReceivePort receivePort = ReceivePort();
+
+    // 创建一个新的 Isolate ，注意这里第一个参数是 _SimpleDatabaseServer._run
+    // 会在后台启动一个 Isolate ，执行的是 _SimpleDatabaseServer._run ，并将
+    // receivedPort.sendPort 作为参数传递过去
     final Isolate isolate =
         await Isolate.spawn(_SimpleDatabaseServer._run, receivePort.sendPort);
+
+    // 创建一个 SimpleDatabase 实例
     final SimpleDatabase result = SimpleDatabase._(isolate, path);
+
+    //添加一个 Completer
     Completer<void> completer = Completer<void>();
-    result._completers.addFirst(completer);
+    result._completers.addFirst(completer); //加入队列，后面处理会按先进先出的方式依次处理
+
+    //添加监听事件处理
     receivePort.listen((message) {
       result._handleCommand(message as _Command);
     });
+
+    //等待初始化完成
     await completer.future;
     return result;
   }
@@ -130,9 +156,13 @@ class SimpleDatabase {
         // invoke [BackgroundIsolateBinaryMessenger.ensureInitialized].
         // ----------------------------------------------------------------------
         RootIsolateToken rootIsolateToken = RootIsolateToken.instance!;
+        //收到 server 的初始化响应后，回复 token 过去
         _sendPort
             .send(_Command(_Codes.init, arg0: _path, arg1: rootIsolateToken));
       case _Codes.ack:
+        // 在 open 方法里面，添加了第一个 Completer<void> ,并 await complete.future
+        // 那什么时候才会完成呢？就是在这里触发的完成。
+        // 不止第一个，所有的 Completer 都是在这里标记的完成
         _completers.removeLast().complete();
       case _Codes.result:
         _resultsStream.last.add(command.arg0 as String);
@@ -164,8 +194,12 @@ class _SimpleDatabaseServer {
   // ----------------------------------------------------------------------
 
   /// The main entrypoint for the background isolate sent to [Isolate.spawn].
+  /// sendPort 参数是客户端传递过来的
   static void _run(SendPort sendPort) {
     ReceivePort receivePort = ReceivePort();
+    // 会先发一个初始化命令将 server 的 sendport 传递给客户端
+    // 这样，client 和 server 都有了对方的 receivePort.sendPort
+    // 就可以进行交流了
     sendPort.send(_Command(_Codes.init, arg0: receivePort.sendPort));
     final _SimpleDatabaseServer server = _SimpleDatabaseServer(sendPort);
     receivePort.listen((message) async {

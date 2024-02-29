@@ -16,6 +16,10 @@ import 'modified_action_page.dart';
 import 'platform_selector.dart';
 import 'reordered_buttons_page.dart';
 
+///////////////////////////////////////////////////////////////////////////////
+/// 演示了上下文菜单的功能。例如在 windows 上，右击不同的元素，会展示不同的菜单
+///
+///////////////////////////////////////////////////////////////////////////////
 void main() {
   runApp(const MyApp());
 }
@@ -109,6 +113,8 @@ class MyHomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Context Menu Demos'),
+        //这个属性是用来设置 title 后面一系列的其它组件，通常展示在一列，比如搜索，链接（比如 github）
+        //这里设置了一个下拉选择组件用来选择平台
         actions: <Widget>[
           PlatformSelector(
             onChangedPlatform: onChangedPlatform,

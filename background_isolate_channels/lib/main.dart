@@ -13,6 +13,9 @@ import 'package:uuid/uuid.dart' as uuid;
 
 import 'simple_database.dart';
 
+// 这个示例主要展示了后台 Isolate 的使用
+// Isolate 可以理解为一个轻量级线程，有独立的堆内存，常用于处理耗时任务，实现异步/并发
+
 ///////////////////////////////////////////////////////////////////////////////
 // This is the UI which will present the contents of the [SimpleDatabase]. To
 // see where Background Isolate Channels are used see simple_database.dart.
@@ -124,6 +127,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: const Color.fromARGB(200, 255, 0, 0),
         title: Text(widget.title),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(kToolbarHeight),

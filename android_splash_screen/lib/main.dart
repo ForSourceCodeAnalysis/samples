@@ -14,6 +14,13 @@
  * limitations under the License.
  */
 
+/**
+ * 这个项目用来设置 android 应用启动画面
+ * 功能的实现主要是修改android文件夹里面的内容，这里的内容和启动画面无关，具体的
+ * 可以参考readme文件
+ * 
+ */
+
 import 'package:flutter/material.dart';
 
 Future<void> main() async {
@@ -29,6 +36,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
+        //MaterialApp里面包含了主题，可以设置统一的主题颜色
         primarySwatch: Colors.blue,
         useMaterial3: true,
       ),
