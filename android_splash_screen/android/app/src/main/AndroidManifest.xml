@@ -15,10 +15,23 @@
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.splash_screen_sample">
-   <application
-        android:label="splash_screen_sample"
+    package="com.example.splash_screen_sample">    
+    <!-- label: 应用名称（显示在设备上） 
+      icon: 应用图标
+    -->
+
+   <application   
+        android:label="splash_screen_sample" 
         android:icon="@mipmap/ic_launcher">
+        <!--
+         name: 应用类名（.表示同报名）
+         exported: 是否允许其他应用访问此应用
+         theme: 指定启动时使用的主题样式
+         launchMode: 启动模式 singleTop:单例栈顶复用
+         configChanges: 配置改变时由代码处理而非重启
+         hardwareAccelerated: 是否使用硬件加速
+         windowSoftInputMode: 软键盘模式 adjustResize:软键盘弹出时调整窗口大小
+         -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -34,8 +47,12 @@
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
+             <!-- meta-data 为 Flutter 工具提供配置信息 -->
         <meta-data
             android:name="flutterEmbedding"
-            android:value="2" />
+            android:value="2" /><!-- 指定使用 Flutter 的嵌入 API 版本 2 -->
+        <meta-data
+            android:name="io.flutter.embedding.android.EnableImpeller"
+            android:value="false" />
     </application>
 </manifest>

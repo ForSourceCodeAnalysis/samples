@@ -47,11 +47,16 @@ class MainActivity : FlutterActivity() {
     super.onCreate(savedInstanceState)
 
     // This activity will be handling the splash screen transition.
+    // 使用 AndroidX 的 SplashScreen API 安装系统级启动屏。
     val splashScreen = installSplashScreen()
 
     // The splash screen goes edge to edge, so for a smooth transition to our app, also
     // want to draw edge to edge.
+    //全屏适配 通过 setDecorFitsSystemWindows(false) 实现内容延伸到系统栏（状态栏/导航栏），符合 Material Design 3 的沉浸式设计规范。
     WindowCompat.setDecorFitsSystemWindows(window, false)
+
+
+
     val insetsController = WindowCompat.getInsetsController(window, window.decorView)
     insetsController?.isAppearanceLightNavigationBars = true
     insetsController?.isAppearanceLightStatusBars = true
@@ -75,6 +80,9 @@ class MainActivity : FlutterActivity() {
     }
   }
 
+
+// 状态监听：覆盖 FlutterActivity 的回调方法，在 Flutter UI 显示/隐藏时更新状态变量 flutterUIReady。
+// 同步逻辑：只有当 Flutter UI 和初始动画都完成后，才触发 splash screen 的隐藏动画，确保过渡流畅。
   override fun onFlutterUiDisplayed(){
     flutterUIReady = true
 
@@ -100,6 +108,12 @@ class MainActivity : FlutterActivity() {
 
   /**
    * Handles the transition from the splash screen to the application.
+   * 自定义退出动画
+   *
+   * 多动画组合：通过 AnimatorSet 和 ObjectAnimator 实现 Alpha 淡出和图标下移的组合动画。
+   * ConstraintLayout 过渡：使用 ConstraintSet 定义动画起始和结束的布局约束，通过 TransitionManager 实现布局变化的平滑过渡。
+   * 动画同步：通过 doOnEnd 确保动画结束后移除启动屏视图，避免残留。
+   * 等待机制：waitForAnimatedIconToFinish 方法确保图标动画完成后才启动主动画，防止视觉冲突。
    */
   private fun onSplashScreenExit(splashScreenViewProvider: SplashScreenViewProvider) {
     val accelerateInterpolator = FastOutLinearInInterpolator()
@@ -107,10 +121,12 @@ class MainActivity : FlutterActivity() {
     val iconView = splashScreenViewProvider.iconView
 
     // Change the alpha of the main view.
+    // 1.创建Alpha 动画
     val alpha = ValueAnimator.ofInt(255, 0)
     alpha.duration = SPLASHSCREEN_ALPHA_ANIMATION_DURATION
     alpha.interpolator = accelerateInterpolator
 
+    // 创建图标下移动画
     // And translate the icon down.
     val translationY = ObjectAnimator.ofFloat(
       iconView,
@@ -121,10 +137,13 @@ class MainActivity : FlutterActivity() {
     translationY.duration = SPLASHSCREEN_TY_ANIMATION_DURATION
     translationY.interpolator = accelerateInterpolator
 
+    // 组合动画
     // And play all of the animation together.
     val animatorSet = AnimatorSet()
     animatorSet.playTogether(alpha)
 
+
+    //使用ConstraintLayout过渡动画
     // Apply layout constraints of starting frame of animation to
     // FrameLayout's container for the TransitionManager to know
     // where to start the transition.
@@ -173,12 +192,13 @@ class MainActivity : FlutterActivity() {
     }
     alpha.addUpdateListener(alphaUpdateListener)
 
+    //动画完成时移除启动屏
     // Once the application is finished, remove the splash screen from our view
     // hierarchy.
     animatorSet.doOnEnd {
       splashScreenViewProvider.remove()
     }
-
+    // 等待图标动画完成后启动主动画
     waitForAnimatedIconToFinish(splashScreenViewProvider, splashScreenView) {
       animatorSet.start()
     }
@@ -202,10 +222,12 @@ class MainActivity : FlutterActivity() {
     view.postDelayed(delayMillis, onAnimationFinished)
   }
 
+  // 动画时长：定义了 Alpha 动画和位移动画的持续时间，符合 Material Design 的动画规范（通常 200-500ms）。
+  // 开关配置：WAIT_FOR_AVD_TO_FINISH 控制是否等待矢量动画完成，方便快速调试。
   private companion object {
-    const val SPLASHSCREEN_ALPHA_ANIMATION_DURATION = 500 as Long
-    const val SPLASHSCREEN_TY_ANIMATION_DURATION = 500 as Long
-    const val SPLASHSCREEN_FINAL_ANIMATION_ALPHA_ANIMATION_DURATION = 250 as Long
+    const val SPLASHSCREEN_ALPHA_ANIMATION_DURATION = 500L
+    const val SPLASHSCREEN_TY_ANIMATION_DURATION = 500L
+    const val SPLASHSCREEN_FINAL_ANIMATION_ALPHA_ANIMATION_DURATION = 250L
     const val WAIT_FOR_AVD_TO_FINISH = false
   }
 }
